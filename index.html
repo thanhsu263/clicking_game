@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Clicker Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ef4444 0%, #fbbf24 50%, #3b82f6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .pokeball-count {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .pokeball-label {
+            font-size: 1.5rem;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box {
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-box.yellow {
+            background: #fef3c7;
+        }
+
+        .stat-box.blue {
+            background: #dbeafe;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .stat-value.yellow {
+            color: #d97706;
+        }
+
+        .stat-value.blue {
+            color: #2563eb;
+        }
+
+        .total-earned {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 15px;
+        }
+
+        .pokeball-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pokeball {
+            cursor: pointer;
+            transition: transform 0.1s;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+        }
+
+        #pokeball:hover {
+            transform: scale(1.05);
+        }
+
+        #pokeball:active {
+            transform: scale(0.95);
+        }
+
+        .upgrades-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .upgrades-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 25px;
+            position: sticky;
+            top: 0;
+            background: white;
+            padding-bottom: 15px;
+            z-index: 10;
+        }
+
+        .upgrade-item {
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .upgrade-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .upgrade-item.disabled {
+            opacity: 0.6;
+        }
+
+        .upgrade-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .upgrade-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .upgrade-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-desc {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .upgrade-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .upgrade-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .upgrade-btn:disabled {
+            background: #d1d5db !important;
+            cursor: not-allowed;
+        }
+
+        /* Upgrade colors */
+        .upgrade-yellow { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fcd34d; }
+        .upgrade-yellow .upgrade-icon { background: #fbbf24; }
+        .upgrade-yellow .upgrade-btn { background: #f59e0b; }
+        .upgrade-yellow .upgrade-btn:hover:not(:disabled) { background: #d97706; }
+
+        .upgrade-blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #93c5fd; }
+        .upgrade-blue .upgrade-icon { background: #60a5fa; }
+        .upgrade-blue .upgrade-btn { background: #3b82f6; }
+        .upgrade-blue .upgrade-btn:hover:not(:disabled) { background: #2563eb; }
+
+        .upgrade-orange { background: linear-gradient(135deg, #fed7aa, #fdba74); border-color: #fb923c; }
+        .upgrade-orange .upgrade-icon { background: #fb923c; }
+        .upgrade-orange .upgrade-btn { background: #f97316; }
+        .upgrade-orange .upgrade-btn:hover:not(:disabled) { background: #ea580c; }
+
+        .upgrade-pink { background: linear-gradient(135deg, #fce7f3, #fbcfe8); border-color: #f9a8d4; }
+        .upgrade-pink .upgrade-icon { background: #f472b6; }
+        .upgrade-pink .upgrade-btn { background: #ec4899; }
+        .upgrade-pink .upgrade-btn:hover:not(:disabled) { background: #db2777; }
+
+        .upgrade-green { background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #6ee7b7; }
+        .upgrade-green .upgrade-icon { background: #34d399; }
+        .upgrade-green .upgrade-btn { background: #10b981; }
+        .upgrade-green .upgrade-btn:hover:not(:disabled) { background: #059669; }
+
+        .upgrade-purple { background: linear-gradient(135deg, #e9d5ff, #d8b4fe); border-color: #c084fc; }
+        .upgrade-purple .upgrade-icon { background: #a855f7; }
+        .upgrade-purple .upgrade-btn { background: #9333ea; }
+        .upgrade-purple .upgrade-btn:hover:not(:disabled) { background: #7e22ce; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Pokemon Clicker</h1>
+            <p>Bắt Pokemon và trở thành Master!</p>
+        </div>
+
+        <div class="game-layout">
+            <!-- Left Side -->
+            <div>
+                <div class="stats-card">
+                    <div class="pokeball-count" id="pokeball-count">0</div>
+                    <div class="pokeball-label">⚡ Pokéballs</div>
+                    <div class="stats-grid">
+                        <div class="stat-box yellow">
+                            <div class="stat-label">Per Click</div>
+                            <div class="stat-value yellow" id="per-click">1</div>
+                        </div>
+                        <div class="stat-box blue">
+                            <div class="stat-label">Per Second</div>
+                            <div class="stat-value blue" id="per-second">0</div>
+                        </div>
+                    </div>
+                    <div class="total-earned">Total Earned: <span id="total-earned">0</span></div>
+                </div>
+
+                <div class="pokeball-container">
+                    <svg id="pokeball" width="280" height="280" viewBox="0 0 280 280">
+                        <circle cx="140" cy="140" r="135" fill="#000" />
+                        <path d="M 140 5 A 135 135 0 0 1 275 140 L 5 140 A 135 135 0 0 1 140 5 Z" fill="#FF5350" />
+                        <ellipse cx="90" cy="70" rx="45" ry="55" fill="#FFF" opacity="0.3" />
+                        <path d="M 5 140 L 275 140 A 135 135 0 0 1 140 275 A 135 135 0 0 1 5 140 Z" fill="#FFF" />
+                        <path d="M 5 140 L 275 140 A 135 135 0 0 1 140 275 A 135 135 0 0 1 5 140 Z" fill="#CCC" opacity="0.4" />
+                        <rect x="0" y="120" width="280" height="40" fill="#000" />
+                        <rect x="0" y="125" width="280" height="30" fill="#555" />
+                        <circle cx="140" cy="140" r="50" fill="#555" />
+                        <circle cx="140" cy="140" r="45" fill="#333" />
+                        <circle cx="140" cy="140" r="30" fill="#FFF" />
+                        <circle cx="140" cy="140" r="25" fill="#FFF" stroke="#DDD" stroke-width="2" />
+                        <ellipse cx="135" cy="132" rx="12" ry="15" fill="#FFF" opacity="0.6" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Right Side -->
+            <div class="upgrades-card">
+                <div class="upgrades-title">🔧 Nâng Cấp</div>
+                <div id="upgrades-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let pokeballs = 0;
+        let totalEarned = 0;
+        let clickPower = 1;
+        let autoClickers = [];
+
+        // Upgrades configuration
+        const upgrades = [
+            { id: 'click', name: 'Power Click', desc: '+1 PB mỗi click', baseCost: 10, level: 0, multiplier: 1.15, icon: '⚡', color: 'yellow', type: 'click' },
+            { id: 'pikachu', name: 'Pikachu', desc: '+1 PB/giây', baseCost: 50, level: 0, multiplier: 1.2, pbs: 1, icon: '⚡', color: 'blue', type: 'auto' },
+            { id: 'charizard', name: 'Charizard', desc: '+10 PB/giây', baseCost: 500, level: 0, multiplier: 1.25, pbs: 10, icon: '🔥', color: 'orange', type: 'auto' },
+            { id: 'mew', name: 'Mew', desc: '+50 PB/giây', baseCost: 3000, level: 0, multiplier: 1.3, pbs: 50, icon: '⭐', color: 'pink', type: 'auto' },
+            { id: 'rayquaza', name: 'Rayquaza', desc: '+200 PB/giây', baseCost: 15000, level: 0, multiplier: 1.35, pbs: 200, icon: '✨', color: 'green', type: 'auto' },
+            { id: 'arceus', name: 'Arceus', desc: '+1000 PB/giây', baseCost: 80000, level: 0, multiplier: 1.4, pbs: 1000, icon: '👑', color: 'purple', type: 'auto' }
+        ];
+
+        // Format number
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return Math.floor(num).toLocaleString();
+        }
+
+        // Calculate upgrade cost
+        function getUpgradeCost(upgrade) {
+            return Math.floor(upgrade.baseCost * Math.pow(upgrade.multiplier, upgrade.level));
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('pokeball-count').textContent = formatNumber(pokeballs);
+            document.getElementById('per-click').textContent = clickPower;
+            const pbsPerSecond = autoClickers.reduce((sum, c) => sum + c.pbs, 0);
+            document.getElementById('per-second').textContent = pbsPerSecond;
+            document.getElementById('total-earned').textContent = formatNumber(totalEarned);
+        }
+
+        // Render upgrades
+        function renderUpgrades() {
+            const container = document.getElementById('upgrades-container');
+            container.innerHTML = '';
+            
+            upgrades.forEach(upgrade => {
+                const cost = getUpgradeCost(upgrade);
+                const canAfford = pokeballs >= cost;
+                
+                const div = document.createElement('div');
+                div.className = `upgrade-item upgrade-${upgrade.color} ${!canAfford ? 'disabled' : ''}`;
+                div.innerHTML = `
+                    <div class="upgrade-info">
+                        <div class="upgrade-icon">${upgrade.icon}</div>
+                        <div class="upgrade-details">
+                            <div class="upgrade-name">${upgrade.name}</div>
+                            <div class="upgrade-desc">Level ${upgrade.level} • ${upgrade.desc}</div>
+                        </div>
+                    </div>
+                    <button class="upgrade-btn" ${!canAfford ? 'disabled' : ''} onclick="buyUpgrade('${upgrade.id}')">
+                        ${formatNumber(cost)} ⚡
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Buy upgrade
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            const cost = getUpgradeCost(upgrade);
+            
+            if (pokeballs >= cost) {
+                pokeballs -= cost;
+                upgrade.level++;
+                
+                if (upgrade.type === 'click') {
+                    clickPower++;
+                } else {
+                    autoClickers.push({ pbs: upgrade.pbs });
+                }
+                
+                updateDisplay();
+                renderUpgrades();
+            }
+        }
+
+        // Click handler
+        document.getElementById('pokeball').addEventListener('click', function() {
+            pokeballs += clickPower;
+            totalEarned += clickPower;
+            updateDisplay();
+            renderUpgrades();
+        });
+
+        // Auto clicker
+        setInterval(() => {
+            if (autoClickers.length > 0) {
+                const total = autoClickers.reduce((sum, c) => sum + c.pbs, 0);
+                pokeballs += total;
+                totalEarned += total;
+                updateDisplay();
+                renderUpgrades();
+            }
+        }, 1000);
+
+        // Initial render
+        updateDisplay();
+        renderUpgrades();
+    </script>
+</body>
+</html>
