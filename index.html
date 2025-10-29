@@ -21,6 +21,7 @@
             background: linear-gradient(135deg, #ef4444 0%, #fbbf24 50%, #3b82f6 100%);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden; /* Prevent horizontal scrollbar from notifications */
         }
 
         .container {
@@ -84,21 +85,21 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 15px; /* Added margin-bottom */
         }
 
         .stat-box {
             padding: 15px;
             border-radius: 10px;
+            text-align: center; /* Center text */
         }
 
-        .stat-box.yellow {
-            background: #fef3c7;
-        }
+        .stat-box.yellow { background: #fef3c7; }
+        .stat-box.blue { background: #dbeafe; }
+        /* NEW Colors for Click/Stone boxes */
+        .stat-box.green { background: #dcfce7; }
+        .stat-box.purple { background: #f3e8ff; }
 
-        .stat-box.blue {
-            background: #dbeafe;
-        }
 
         .stat-label {
             font-size: 0.75rem;
@@ -111,30 +112,18 @@
             font-weight: bold;
         }
 
-        .stat-value.yellow {
-            color: #d97706;
-        }
+        .stat-value.yellow { color: #d97706; }
+        .stat-value.blue { color: #2563eb; }
+        /* NEW Colors for Click/Stone values */
+        .stat-value.green { color: #15803d; }
+        .stat-value.purple { color: #7e22ce; }
 
-        .stat-value.blue {
-            color: #2563eb;
-        }
 
+        /* Total Earned moved out of grid */
         .total-earned {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            margin-top: 15px;
-        }
-        
-        .total-clicks {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            margin-top: 5px;
-        }
-        
-        .mega-stone-count {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            margin-top: 5px;
+            font-size: 0.85rem; /* Slightly larger */
+            color: #6b7280; /* Darker gray */
+            margin-top: 20px;
         }
 
         .pokeball-container {
@@ -442,10 +431,46 @@
             border-color: #4299e1; 
             box-shadow: 0 0 20px rgba(66, 153, 225, 0.7);
         }
+        
+        /* === NEW NOTIFICATION STYLES === */
+        #notification-area {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .notification {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            max-width: 300px;
+            font-size: 0.9rem;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        /* Style types (optional) */
+        .notification.success { background-color: rgba(21, 128, 61, 0.9); } /* Dark green */
+        .notification.info { background-color: rgba(30, 64, 175, 0.9); } /* Dark blue */
+        .notification.warning { background-color: rgba(217, 119, 6, 0.9); } /* Dark orange */
 
     </style>
 </head>
 <body>
+    <div id="notification-area"></div>
+
     <div class="container">
         <div class="header">
             <h1>🎮 Pokemon Clicker</h1>
@@ -466,11 +491,17 @@
                             <div class="stat-label">Per Second</div>
                             <div class="stat-value blue" id="per-second">0</div>
                         </div>
+                        <div class="stat-box green">
+                            <div class="stat-label">Total Clicks</div>
+                            <div class="stat-value green" id="total-clicks">0</div>
+                        </div>
+                         <div class="stat-box purple">
+                            <div class="stat-label">Mega Stones</div>
+                            <div class="stat-value purple" id="mega-stone-count">0</div>
+                        </div>
                     </div>
                     <div class="total-earned">Total Earned: <span id="total-earned">0</span></div>
-                    <div class="total-clicks">Total Clicks: <span id="total-clicks">0</span></div>
-                    <div class="mega-stone-count">Mega Stones: <span id="mega-stone-count">0</span></div>
-                </div>
+                    </div>
 
                 <div class="pokeball-container" id="pokeball-container">
                     <svg id="pokeball" width="280" height="280" viewBox="0 0 280 280">
@@ -537,19 +568,22 @@
         let clickPower = 1;
         let autoClickers = [];
         let totalManualClicks = 0; 
-        let megaStoneCount = 0; // NEW: Track Mega Stones
+        let megaStoneCount = 0; 
 
         // Gacha & Collection State
         let activePokemon = null; 
         let gachaCost = 1000; 
-        const EVOLUTION_1_CLICKS = 5;
-        const EVOLUTION_2_CLICKS = 25;
-        const MEGA_STONE_DROP_RATE = 0.001; // NEW: 0.1% chance per click
+        const EVOLUTION_1_CLICKS = 2500;
+        const EVOLUTION_2_CLICKS = 10000;
+        const MEGA_STONE_DROP_RATE = 0.001; 
+        const LOW_TIER_REWARD_CHANCE_BEFORE_COMPLETE = 0.2; // 1% chance for reward before tier 3 complete
+        const LOW_TIER_REWARD_CHANCE_AFTER_COMPLETE = 0.4; // 2% chance after
+
 
         // GACHA CHANCES (Total must = 1.0)
-        const LEGENDARY_CHANCE = 0.10; // 10%
-        const MYTHIC_CHANCE = 0;      // 0% (Không có)
-        const RATE_CHANCE = 0;        // 0% (Không có)
+        const LEGENDARY_CHANCE = 0.001; // 10%
+        const MYTHIC_CHANCE = 0.01;      // 0% (Không có)
+        const RATE_CHANCE = 0.20;        // 0% (Không có)
         const NORMAL_CHANCE = 0.30;   // 30%
         // STARTER_CHANCE is 1.0 - (all other chances) = 60%
 
@@ -558,10 +592,10 @@
             // Starters (Evolving)
             'chespin': { name: 'Chespin', stages: ['s3_1.webp', 's3_2.webp', 's3_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0 },
             'fennekin': { name: 'Fennekin', stages: ['s2_1.webp', 's2_2.webp', 's2_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0 },
-            'froakie': { name: 'Froakie', stages: ['s1_1.webp', 's1_2.webp', 's1_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0, },
+            'froakie': { name: 'Froakie', stages: ['s1_1.webp', 's1_2.webp', 's1_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0, megaInfo: { megaSprite: 's1_mega.webp', isMega: false } },
             
             // Normal (Evolving)
-            'gastly': { name: 'Gastly', stages: ['n1_1.webp', 'n1_2.webp', 'n1_3.webp'], owned: false, currentStage: 0, type: 'normal', clicks: 0 },
+            'gastly': { name: 'Gastly', stages: ['n1_1.webp', 'n1_2.webp', 'n1_3.webp'], owned: false, currentStage: 0, type: 'normal', clicks: 0, megaInfo: { megaSprite: 'n1_4.webp', isMega: false } },
             'magikarp': { name: 'Magikarp', stages: ['n2_1.webp', 'n2_2.webp'], owned: false, currentStage: 0, type: 'normal', clicks: 0, megaInfo: { megaSprite: 'n2_3.webp', isMega: false } },
             
             // Rate (Evolving) - Thêm Pokémon vào đây
@@ -599,16 +633,45 @@
         function getUpgradeCost(upgrade) {
             return Math.floor(upgrade.baseCost * Math.pow(upgrade.multiplier, upgrade.level));
         }
+        
+        // === NEW NOTIFICATION FUNCTION ===
+        function showNotification(message, type = 'info', duration = 3000) {
+            const area = document.getElementById('notification-area');
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            if (type) {
+                notification.classList.add(type); // 'success', 'warning', 'info'
+            }
+            notification.textContent = message;
 
-        // Update display
+            area.appendChild(notification);
+
+            // Trigger the animation
+            requestAnimationFrame(() => {
+                notification.classList.add('show');
+            });
+
+            // Set timeout to remove the notification
+            setTimeout(() => {
+                notification.classList.remove('show');
+                // Remove the element after the fade-out transition
+                setTimeout(() => {
+                    if (area.contains(notification)) {
+                        area.removeChild(notification);
+                    }
+                }, 500); // Match transition duration
+            }, duration);
+        }
+
+
+        // Update display (MODIFIED for new stats layout)
         function updateDisplay() {
             document.getElementById('pokeball-count').textContent = formatNumber(pokeballs);
             document.getElementById('per-click').textContent = clickPower;
-            const pbsPerSecond = autoClickers.reduce((sum, c) => sum + c.pbs, 0);
-            document.getElementById('per-second').textContent = pbsPerSecond;
+            document.getElementById('per-second').textContent = autoClickers.reduce((sum, c) => sum + c.pbs, 0);
             document.getElementById('total-earned').textContent = formatNumber(totalEarned);
             document.getElementById('total-clicks').textContent = formatNumber(totalManualClicks); 
-            document.getElementById('mega-stone-count').textContent = formatNumber(megaStoneCount); // NEW
+            document.getElementById('mega-stone-count').textContent = formatNumber(megaStoneCount); 
             
             renderGachaButton(); 
         }
@@ -748,7 +811,7 @@
             }
             updateClickerImage();
             renderCollection(); 
-            showMegaButtonCheck(); // NEW: Check if Mega button should be shown
+            showMegaButtonCheck(); 
         }
 
         // Update clicker image (MODIFIED for Mega)
@@ -790,10 +853,10 @@
             }
 
             if (evolved) {
-                alert(`Chúc mừng! ${pkmn.name} của bạn đã tiến hóa!`);
+                showNotification(`Chúc mừng! ${pkmn.name} của bạn đã tiến hóa!`, 'success'); // MODIFIED
                 updateClickerImage(); 
                 renderCollection(); 
-                showMegaButtonCheck(); // NEW: Check if Mega button should appear
+                showMegaButtonCheck(); 
             }
         }
         
@@ -802,14 +865,14 @@
             return list[Math.floor(Math.random() * list.length)];
         }
 
-        // === *** GACHA LOGIC WITH "BUG" + RANDOM REWARD + 1.5x COST *** ===
+        // === *** UPDATED GACHA LOGIC WITH NEW REWARD MECHANIC *** ===
         function pullGacha() {
-            let currentCost = gachaCost; 
+            let currentCost = gachaCost;
             if (pokeballs < currentCost) return;
 
             pokeballs -= currentCost;
             // Increase cost by 1.5x, rounded up
-            gachaCost = Math.ceil(currentCost * 1.5); 
+            gachaCost = Math.ceil(currentCost * 1.5);
 
             // Get all unowned pokemon for each rarity
             const unownedStarters = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'starter' && !allPokemon[k].owned);
@@ -821,62 +884,104 @@
             let wonPokemonKey = null;
             let rand = Math.random();
             let compensation = 0; // Prepare for reward/refund
+            let chosenBracket = 'starter'; // Default
 
-            // Determine Rarity Roll
-            if (rand < LEGENDARY_CHANCE) { 
-                if (unownedLegendaries.length > 0) wonPokemonKey = getRandomKey(unownedLegendaries);
-            } 
-            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE) { 
-                if (unownedMythics.length > 0) wonPokemonKey = getRandomKey(unownedMythics);
-            }
-            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE) { 
-                if (unownedRates.length > 0) wonPokemonKey = getRandomKey(unownedRates);
-            }
-            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE + NORMAL_CHANCE) { 
-                if (unownedNormals.length > 0) wonPokemonKey = getRandomKey(unownedNormals);
-            } 
-            else { // Starter
-                if (unownedStarters.length > 0) wonPokemonKey = getRandomKey(unownedStarters);
+            // 1. Determine the Rarity "Bracket" the user rolled
+            if (rand < LEGENDARY_CHANCE) {
+                chosenBracket = 'legendary';
+            } else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE) {
+                chosenBracket = 'mythic';
+            } else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE) {
+                chosenBracket = 'rate';
+            } else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE + NORMAL_CHANCE) {
+                chosenBracket = 'normal';
             }
 
-            // Check if a Pokemon was won
-            if (wonPokemonKey) {
-                const wonPokemon = allPokemon[wonPokemonKey];
-                wonPokemon.owned = true;
-                
-                // Reset clicks for evolving types
-                if (wonPokemon.type === 'starter' || wonPokemon.type === 'normal' || wonPokemon.type === 'rate' || wonPokemon.type === 'mythic') {
-                    wonPokemon.currentStage = 0;
-                    wonPokemon.clicks = 0;
+            // 2. Check conditions for the special reward
+            const firstThreeTiersComplete = unownedStarters.length === 0 &&
+                                             unownedNormals.length === 0 &&
+                                             unownedRates.length === 0;
+            const rolledLowTier = (chosenBracket === 'starter' || chosenBracket === 'normal' || chosenBracket === 'rate');
+            
+            // Determine the *actual* chance for the reward based on completion
+            const currentRewardChance = firstThreeTiersComplete 
+                ? LOW_TIER_REWARD_CHANCE_AFTER_COMPLETE 
+                : LOW_TIER_REWARD_CHANCE_BEFORE_COMPLETE;
+
+            // 3. Determine Outcome
+            // IF: Rolled low tier AND the rolled rarity is actually full AND random chance passes -> Give Reward
+            let giveReward = false;
+            if (rolledLowTier) {
+                const rolledBracketIsEmpty = (chosenBracket === 'starter' && unownedStarters.length === 0) ||
+                                           (chosenBracket === 'normal' && unownedNormals.length === 0) ||
+                                           (chosenBracket === 'rate' && unownedRates.length === 0);
+                if (rolledBracketIsEmpty && Math.random() < currentRewardChance) {
+                    giveReward = true;
                 }
-                
-                alert(`Chúc mừng! Bạn đã bắt được ${wonPokemon.name}!`);
-            } else {
-                // *** NEW: Random Pokeball Reward Logic ***
-                // Check if *absolutely all* Pokemon are owned first
-                const allOwned = unownedStarters.length === 0 &&
-                                 unownedNormals.length === 0 &&
-                                 unownedRates.length === 0 &&
-                                 unownedMythics.length === 0 &&
-                                 unownedLegendaries.length === 0;
+            }
 
-                if (allOwned) {
-                    // Refund 50% if truly everything is owned
-                    compensation = currentCost / 2; 
-                    alert(`Bạn đã sở hữu tất cả Pokémon! Bạn được hoàn lại ${formatNumber(compensation)} ⚡.`);
+            if (giveReward) {
+                // Calculate reward (40% - 90%)
+                 const minReward = Math.floor(currentCost * 0.4);
+                 const maxReward = Math.floor(currentCost * 0.9);
+                 compensation = Math.floor(Math.random() * (maxReward - minReward + 1)) + minReward;
+                 showNotification(`Chúc bạn may mắn lần sau! Bạn nhận được ${formatNumber(compensation)} ⚡!`, 'info'); // MODIFIED
+                 pokeballs += compensation;
+            } 
+            // ELSE: Try to award a Pokemon
+            else {
+                // Try the rolled bracket first
+                if (chosenBracket === 'legendary' && unownedLegendaries.length > 0) {
+                    wonPokemonKey = getRandomKey(unownedLegendaries);
+                } else if (chosenBracket === 'mythic' && unownedMythics.length > 0) {
+                    wonPokemonKey = getRandomKey(unownedMythics);
+                } else if (chosenBracket === 'rate' && unownedRates.length > 0) {
+                    wonPokemonKey = getRandomKey(unownedRates);
+                } else if (chosenBracket === 'normal' && unownedNormals.length > 0) {
+                    wonPokemonKey = getRandomKey(unownedNormals);
+                } else if (chosenBracket === 'starter' && unownedStarters.length > 0) {
+                    wonPokemonKey = getRandomKey(unownedStarters);
+                }
+
+                // If rolled bracket was empty or failed, try fallback (rarest first)
+                if (!wonPokemonKey) {
+                    if (unownedLegendaries.length > 0) {
+                        wonPokemonKey = getRandomKey(unownedLegendaries);
+                    } else if (unownedMythics.length > 0) {
+                        wonPokemonKey = getRandomKey(unownedMythics);
+                    } else if (unownedRates.length > 0) {
+                        wonPokemonKey = getRandomKey(unownedRates);
+                    } else if (unownedNormals.length > 0) {
+                        wonPokemonKey = getRandomKey(unownedNormals);
+                    } else if (unownedStarters.length > 0) {
+                        wonPokemonKey = getRandomKey(unownedStarters);
+                    }
+                }
+
+                // Award the Pokemon or give 50% refund if truly *everything* is owned
+                if (wonPokemonKey) {
+                    const wonPokemon = allPokemon[wonPokemonKey];
+                    wonPokemon.owned = true;
+                    // Reset clicks for evolving types
+                    if (wonPokemon.type === 'starter' || wonPokemon.type === 'normal' || wonPokemon.type === 'rate' || wonPokemon.type === 'mythic') {
+                        wonPokemon.currentStage = 0;
+                        wonPokemon.clicks = 0;
+                    }
+                    showNotification(`Chúc mừng! Bạn đã bắt được ${wonPokemon.name}!`, 'success'); // MODIFIED
                 } else {
-                    // Otherwise, give random reward (1 to currentCost)
-                    compensation = Math.floor(Math.random() * currentCost) + 1;
-                    alert(`Chúc bạn mai mắn lần sau! Bạn được hoàn lại  ${formatNumber(compensation)} ⚡!`);
+                    // All Pokémon are owned
+                    compensation = Math.floor(currentCost / 2); // Use floor for whole numbers
+                    showNotification(`Bạn đã sở hữu tất cả Pokémon! Bạn được hoàn lại ${formatNumber(compensation)} ⚡.`, 'info'); // MODIFIED
+                    pokeballs += compensation;
                 }
-                pokeballs += compensation;
             }
 
             updateDisplay();
             renderUpgrades();
             renderCollection();
         }
-        // === *** END GACHA LOGIC *** ===
+        // === *** END UPDATED GACHA LOGIC *** ===
+
 
         // === MEGA EVOLUTION FUNCTIONS ===
 
@@ -914,7 +1019,7 @@
                     // Evolve
                     pkmn.megaInfo.isMega = true;
                     
-                    alert(`Chúc mừng! ${pkmn.name} đã tiến hóa Mega!`);
+                    showNotification(`Chúc mừng! ${pkmn.name} đã tiến hóa Mega!`, 'success'); // MODIFIED
 
                     // Update UI
                     updateDisplay();
@@ -937,7 +1042,7 @@
             // NEW: Mega Stone Drop Check
             if (Math.random() < MEGA_STONE_DROP_RATE) {
                 megaStoneCount++;
-                alert('🎉 Bạn nhặt được 1 Đá Mega!');
+                showNotification('🎉 Bạn nhặt được 1 Đá Mega!', 'info'); // MODIFIED
                 updateDisplay(); // Update stone count immediately
                 showMegaButtonCheck(); // Update button state in case this was the last stone needed
             }
