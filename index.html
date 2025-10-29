@@ -9,6 +9,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            /* === FIX: Chống bôi đen text khi click === */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+            user-select: none;         /* Standard */
         }
 
         body {
@@ -119,11 +124,24 @@
             color: #9ca3af;
             margin-top: 15px;
         }
+        
+        .total-clicks {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        
+        .mega-stone-count {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
 
         .pokeball-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 280px; 
         }
 
         #pokeball {
@@ -137,6 +155,24 @@
         }
 
         #pokeball:active {
+            transform: scale(0.95);
+        }
+
+        #pokemon-clicker-img {
+            width: 280px;
+            height: 280px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+            object-fit: contain;
+            display: none; 
+        }
+
+        #pokemon-clicker-img:hover {
+            transform: scale(1.05);
+        }
+
+        #pokemon-clicker-img:active {
             transform: scale(0.95);
         }
 
@@ -270,6 +306,143 @@
         .upgrade-purple .upgrade-icon { background: #a855f7; }
         .upgrade-purple .upgrade-btn { background: #9333ea; }
         .upgrade-purple .upgrade-btn:hover:not(:disabled) { background: #7e22ce; }
+
+        /* === STYLES FOR GACHA & COLLECTION === */
+        .gacha-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .gacha-btn {
+            background: linear-gradient(135deg, #a855f7, #7e22ce);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 10px 30px rgba(126, 34, 206, 0.4);
+        }
+        .gacha-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(126, 34, 206, 0.5);
+        }
+        .gacha-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+        
+        .mega-evolve-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .mega-btn {
+            background: linear-gradient(135deg, #f97316, #ea580c); /* Orange */
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 10px 30px rgba(234, 88, 12, 0.4);
+        }
+        .mega-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(234, 88, 12, 0.5);
+        }
+        .mega-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+
+        .collection-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-top: 20px;
+        }
+
+        .collection-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .pokemon-type-title {
+            font-size: 1.5rem;
+            color: #374151;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .pokemon-card {
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .pokemon-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .pokemon-card .pokemon-name {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 0.9rem;
+        }
+
+        .pokemon-card.locked {
+            background: #f3f4f6;
+            border-color: #e5e7eb;
+        }
+
+        .pokemon-card.locked img {
+            filter: grayscale(100%) brightness(0.6);
+            opacity: 0.7;
+        }
+
+        .pokemon-card.locked .pokemon-name {
+            color: #9ca3af;
+        }
+
+        .pokemon-card.selectable {
+            cursor: pointer;
+        }
+        .pokemon-card.selectable:hover {
+            box-shadow: 0 0 15px rgba(66, 153, 225, 0.5);
+            border-color: #4299e1;
+        }
+        .pokemon-card.selected {
+            background: #ebf8ff; 
+            border-color: #4299e1; 
+            box-shadow: 0 0 20px rgba(66, 153, 225, 0.7);
+        }
+
     </style>
 </head>
 <body>
@@ -280,7 +453,6 @@
         </div>
 
         <div class="game-layout">
-            <!-- Left Side -->
             <div>
                 <div class="stats-card">
                     <div class="pokeball-count" id="pokeball-count">0</div>
@@ -296,9 +468,11 @@
                         </div>
                     </div>
                     <div class="total-earned">Total Earned: <span id="total-earned">0</span></div>
+                    <div class="total-clicks">Total Clicks: <span id="total-clicks">0</span></div>
+                    <div class="mega-stone-count">Mega Stones: <span id="mega-stone-count">0</span></div>
                 </div>
 
-                <div class="pokeball-container">
+                <div class="pokeball-container" id="pokeball-container">
                     <svg id="pokeball" width="280" height="280" viewBox="0 0 280 280">
                         <circle cx="140" cy="140" r="135" fill="#000" />
                         <path d="M 140 5 A 135 135 0 0 1 275 140 L 5 140 A 135 135 0 0 1 140 5 Z" fill="#FF5350" />
@@ -313,23 +487,96 @@
                         <circle cx="140" cy="140" r="25" fill="#FFF" stroke="#DDD" stroke-width="2" />
                         <ellipse cx="135" cy="132" rx="12" ry="15" fill="#FFF" opacity="0.6" />
                     </svg>
+                    <img id="pokemon-clicker-img" src="" alt="Active Pokemon">
                 </div>
             </div>
 
-            <!-- Right Side -->
             <div class="upgrades-card">
                 <div class="upgrades-title">🔧 Nâng Cấp</div>
                 <div id="upgrades-container"></div>
             </div>
+        </div> 
+        
+        <div class="gacha-container" id="gacha-container">
+            <button id="gacha-button" class="gacha-btn">Mở Gacha</button>
         </div>
-    </div>
 
+        <div class="mega-evolve-container" id="mega-evolve-container" style="display: none;">
+            <button id="mega-evolve-button" class="mega-btn">⚡ Tiến Hóa Mega! ⚡ (1 Đá)</button>
+        </div>
+
+        <div class="collection-card">
+            <h2 class="collection-title">🎁 Bộ Sưu Tập Pokémon</h2>
+            
+            <h3 class="pokemon-type-title">Starter Pokémon</h3>
+            <div class="pokemon-grid" id="starter-pokemon-container">
+            </div>
+            
+            <h3 class="pokemon-type-title">Normal Pokémon</h3>
+            <div class="pokemon-grid" id="normal-pokemon-container">
+            </div>
+
+            <h3 class="pokemon-type-title">Rate Pokémon</h3>
+            <div class="pokemon-grid" id="rate-pokemon-container">
+            </div>
+
+            <h3 class="pokemon-type-title">Mythic Pokémon</h3>
+            <div class="pokemon-grid" id="mythic-pokemon-container">
+            </div>
+            
+            <h3 class="pokemon-type-title">Legendary Pokémon</h3>
+            <div class="pokemon-grid" id="legendary-pokemon-container">
+            </div>
+        </div>
+    </div> 
+    
     <script>
         // Game state
         let pokeballs = 0;
         let totalEarned = 0;
         let clickPower = 1;
         let autoClickers = [];
+        let totalManualClicks = 0; 
+        let megaStoneCount = 0; // NEW: Track Mega Stones
+
+        // Gacha & Collection State
+        let activePokemon = null; 
+        let gachaCost = 1000; 
+        const EVOLUTION_1_CLICKS = 5;
+        const EVOLUTION_2_CLICKS = 25;
+        const MEGA_STONE_DROP_RATE = 0.001; // NEW: 0.1% chance per click
+
+        // GACHA CHANCES (Total must = 1.0)
+        const LEGENDARY_CHANCE = 0.10; // 10%
+        const MYTHIC_CHANCE = 0;      // 0% (Không có)
+        const RATE_CHANCE = 0;        // 0% (Không có)
+        const NORMAL_CHANCE = 0.30;   // 30%
+        // STARTER_CHANCE is 1.0 - (all other chances) = 60%
+
+        // === CƠ SỞ DỮ LIỆU POKEMON MỚI ===
+        const allPokemon = {
+            // Starters (Evolving)
+            'chespin': { name: 'Chespin', stages: ['s3_1.webp', 's3_2.webp', 's3_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0 },
+            'fennekin': { name: 'Fennekin', stages: ['s2_1.webp', 's2_2.webp', 's2_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0 },
+            'froakie': { name: 'Froakie', stages: ['s1_1.webp', 's1_2.webp', 's1_3.webp'], owned: false, currentStage: 0, type: 'starter', clicks: 0, },
+            
+            // Normal (Evolving)
+            'gastly': { name: 'Gastly', stages: ['n1_1.webp', 'n1_2.webp', 'n1_3.webp'], owned: false, currentStage: 0, type: 'normal', clicks: 0 },
+            'magikarp': { name: 'Magikarp', stages: ['n2_1.webp', 'n2_2.webp'], owned: false, currentStage: 0, type: 'normal', clicks: 0, megaInfo: { megaSprite: 'n2_3.webp', isMega: false } },
+            
+            // Rate (Evolving) - Thêm Pokémon vào đây
+            'axew': { name: 'Axew', stages: ['r1_1.webp', 'r1_2.webp', 'r1_3.webp'], owned: false, currentStage: 0, type: 'rate', clicks: 0 },
+            'bagon': { name: 'Bagon', stages: ['r2_1.webp', 'r2_2.webp', 'r2_3.webp'], owned: false, currentStage: 0, type: 'rate', clicks: 0 },
+            // Mythic (Evolving) - Thêm Pokémon vào đây
+            'roaringmoon': { name: 'Roaring Moon', stages: ['m1.webp'], owned: false, currentStage: 0, type: 'mythic' },
+            'ironmoth': { name: 'Iron Month', stages: ['m2.webp'], owned: false, currentStage: 0, type: 'mythic' },
+            // Legendary (Non-Evolving)
+            'kyogre': { name: 'Kyogre', stages: ['leg1.webp'], owned: false, currentStage: 0, type: 'legendary' },
+            'groundon': { name: 'Groundon', stages: ['leg2.webp'], owned: false, currentStage: 0, type: 'legendary' },
+            'rayquaza': { name: 'Rayquaza', stages: ['leg5.webp'], owned: false, currentStage: 0, type: 'legendary' },
+            'solgaleo': { name: 'Solgaleo', stages: ['leg3.webp'], owned: false, currentStage: 0, type: 'legendary' },
+            'lunala': { name: 'Lunala', stages: ['leg4.webp'], owned: false, currentStage: 0, type: 'legendary' }
+        };
 
         // Upgrades configuration
         const upgrades = [
@@ -360,6 +607,10 @@
             const pbsPerSecond = autoClickers.reduce((sum, c) => sum + c.pbs, 0);
             document.getElementById('per-second').textContent = pbsPerSecond;
             document.getElementById('total-earned').textContent = formatNumber(totalEarned);
+            document.getElementById('total-clicks').textContent = formatNumber(totalManualClicks); 
+            document.getElementById('mega-stone-count').textContent = formatNumber(megaStoneCount); // NEW
+            
+            renderGachaButton(); 
         }
 
         // Render upgrades
@@ -409,13 +660,308 @@
             }
         }
 
-        // Click handler
-        document.getElementById('pokeball').addEventListener('click', function() {
+        // === GACHA & COLLECTION FUNCTIONS ===
+
+        // Render Gacha Button
+        function renderGachaButton() {
+            const gachaButton = document.getElementById('gacha-button');
+            gachaButton.textContent = `Bắt Pokémon! (${formatNumber(gachaCost)} ⚡)`;
+            gachaButton.disabled = pokeballs < gachaCost;
+        }
+
+        // Render Collection (MODIFIED for Mega)
+        function renderCollection() {
+            const starterContainer = document.getElementById('starter-pokemon-container');
+            const normalContainer = document.getElementById('normal-pokemon-container');
+            const rateContainer = document.getElementById('rate-pokemon-container');
+            const mythicContainer = document.getElementById('mythic-pokemon-container');
+            const legendaryContainer = document.getElementById('legendary-pokemon-container');
+            
+            starterContainer.innerHTML = '';
+            normalContainer.innerHTML = '';
+            rateContainer.innerHTML = '';
+            mythicContainer.innerHTML = '';
+            legendaryContainer.innerHTML = '';
+
+            for (const key in allPokemon) {
+                const pokemon = allPokemon[key];
+                const card = document.createElement('div');
+                card.className = 'pokemon-card';
+                
+                let imgSrc, name;
+                
+                if (pokemon.owned) {
+                    // NEW check for Mega
+                    if (pokemon.megaInfo && pokemon.megaInfo.isMega) {
+                        imgSrc = pokemon.megaInfo.megaSprite;
+                        name = "Mega " + pokemon.name;
+                    } else {
+                        imgSrc = pokemon.stages[pokemon.currentStage];
+                        name = pokemon.name;
+                    }
+
+                    // Make ALL owned pokemon selectable
+                    card.classList.add('selectable');
+                    card.onclick = () => selectPokemon(key);
+                    if (activePokemon === key) {
+                        card.classList.add('selected');
+                    }
+                    
+                } else {
+                    card.classList.add('locked');
+                    imgSrc = pokemon.stages[0];
+                    name = '???';
+                }
+                
+                card.innerHTML = `
+                    <img src="${imgSrc}" alt="${pokemon.name}">
+                    <span class="pokemon-name">${name}</span>
+                `;
+                
+                // Append to the correct container based on type
+                switch (pokemon.type) {
+                    case 'starter':
+                        starterContainer.appendChild(card);
+                        break;
+                    case 'normal':
+                        normalContainer.appendChild(card);
+                        break;
+                    case 'rate':
+                        rateContainer.appendChild(card);
+                        break;
+                    case 'mythic':
+                        mythicContainer.appendChild(card);
+                        break;
+                    case 'legendary':
+                        legendaryContainer.appendChild(card);
+                        break;
+                }
+            }
+        }
+
+        // Select a Pokemon
+        function selectPokemon(key) {
+            if (activePokemon === key) {
+                activePokemon = null; 
+            } else {
+                activePokemon = key;
+            }
+            updateClickerImage();
+            renderCollection(); 
+            showMegaButtonCheck(); // NEW: Check if Mega button should be shown
+        }
+
+        // Update clicker image (MODIFIED for Mega)
+        function updateClickerImage() {
+            const pokeballSvg = document.getElementById('pokeball');
+            const pokemonImg = document.getElementById('pokemon-clicker-img');
+            
+            if (activePokemon) {
+                const pkmn = allPokemon[activePokemon];
+                // NEW check for Mega
+                if (pkmn.megaInfo && pkmn.megaInfo.isMega) {
+                    pokemonImg.src = pkmn.megaInfo.megaSprite;
+                } else {
+                    pokemonImg.src = pkmn.stages[pkmn.currentStage];
+                }
+                pokemonImg.style.display = 'block';
+                pokeballSvg.style.display = 'none';
+            } else {
+                pokemonImg.style.display = 'none';
+                pokeballSvg.style.display = 'block';
+            }
+        }
+
+        // Check for manual evolution
+        function checkManualEvolution(pkmn) {
+            // Only 'legendary' types CANNOT evolve
+            if (pkmn.type === 'legendary') return;
+
+            let evolved = false;
+            // Check for evolution to Stage 1
+            if (pkmn.currentStage === 0 && pkmn.clicks >= EVOLUTION_1_CLICKS && pkmn.stages.length > 1) {
+                pkmn.currentStage = 1;
+                evolved = true;
+            } 
+            // Check for evolution to Stage 2
+            else if (pkmn.currentStage === 1 && pkmn.clicks >= EVOLUTION_2_CLICKS && pkmn.stages.length > 2) {
+                pkmn.currentStage = 2;
+                evolved = true;
+            }
+
+            if (evolved) {
+                alert(`Chúc mừng! ${pkmn.name} của bạn đã tiến hóa!`);
+                updateClickerImage(); 
+                renderCollection(); 
+                showMegaButtonCheck(); // NEW: Check if Mega button should appear
+            }
+        }
+        
+        // Helper function to get a random unowned pokemon key from a list
+        function getRandomKey(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        // === *** GACHA LOGIC WITH "BUG" + RANDOM REWARD + 1.5x COST *** ===
+        function pullGacha() {
+            let currentCost = gachaCost; 
+            if (pokeballs < currentCost) return;
+
+            pokeballs -= currentCost;
+            // Increase cost by 1.5x, rounded up
+            gachaCost = Math.ceil(currentCost * 1.5); 
+
+            // Get all unowned pokemon for each rarity
+            const unownedStarters = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'starter' && !allPokemon[k].owned);
+            const unownedNormals = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'normal' && !allPokemon[k].owned);
+            const unownedRates = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'rate' && !allPokemon[k].owned);
+            const unownedMythics = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'mythic' && !allPokemon[k].owned);
+            const unownedLegendaries = Object.keys(allPokemon).filter(k => allPokemon[k].type === 'legendary' && !allPokemon[k].owned);
+
+            let wonPokemonKey = null;
+            let rand = Math.random();
+            let compensation = 0; // Prepare for reward/refund
+
+            // Determine Rarity Roll
+            if (rand < LEGENDARY_CHANCE) { 
+                if (unownedLegendaries.length > 0) wonPokemonKey = getRandomKey(unownedLegendaries);
+            } 
+            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE) { 
+                if (unownedMythics.length > 0) wonPokemonKey = getRandomKey(unownedMythics);
+            }
+            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE) { 
+                if (unownedRates.length > 0) wonPokemonKey = getRandomKey(unownedRates);
+            }
+            else if (rand < LEGENDARY_CHANCE + MYTHIC_CHANCE + RATE_CHANCE + NORMAL_CHANCE) { 
+                if (unownedNormals.length > 0) wonPokemonKey = getRandomKey(unownedNormals);
+            } 
+            else { // Starter
+                if (unownedStarters.length > 0) wonPokemonKey = getRandomKey(unownedStarters);
+            }
+
+            // Check if a Pokemon was won
+            if (wonPokemonKey) {
+                const wonPokemon = allPokemon[wonPokemonKey];
+                wonPokemon.owned = true;
+                
+                // Reset clicks for evolving types
+                if (wonPokemon.type === 'starter' || wonPokemon.type === 'normal' || wonPokemon.type === 'rate' || wonPokemon.type === 'mythic') {
+                    wonPokemon.currentStage = 0;
+                    wonPokemon.clicks = 0;
+                }
+                
+                alert(`Chúc mừng! Bạn đã bắt được ${wonPokemon.name}!`);
+            } else {
+                // *** NEW: Random Pokeball Reward Logic ***
+                // Check if *absolutely all* Pokemon are owned first
+                const allOwned = unownedStarters.length === 0 &&
+                                 unownedNormals.length === 0 &&
+                                 unownedRates.length === 0 &&
+                                 unownedMythics.length === 0 &&
+                                 unownedLegendaries.length === 0;
+
+                if (allOwned) {
+                    // Refund 50% if truly everything is owned
+                    compensation = currentCost / 2; 
+                    alert(`Bạn đã sở hữu tất cả Pokémon! Bạn được hoàn lại ${formatNumber(compensation)} ⚡.`);
+                } else {
+                    // Otherwise, give random reward (1 to currentCost)
+                    compensation = Math.floor(Math.random() * currentCost) + 1;
+                    alert(`Chúc bạn mai mắn lần sau! Bạn được hoàn lại  ${formatNumber(compensation)} ⚡!`);
+                }
+                pokeballs += compensation;
+            }
+
+            updateDisplay();
+            renderUpgrades();
+            renderCollection();
+        }
+        // === *** END GACHA LOGIC *** ===
+
+        // === MEGA EVOLUTION FUNCTIONS ===
+
+        function showMegaButtonCheck() {
+            const megaBtnContainer = document.getElementById('mega-evolve-container');
+            const megaBtn = document.getElementById('mega-evolve-button');
+            let show = false;
+
+            if (activePokemon && megaStoneCount > 0) {
+                const pkmn = allPokemon[activePokemon];
+                // Check if it has mega info and is NOT already mega
+                if (pkmn.megaInfo && !pkmn.megaInfo.isMega) {
+                    // Check if it's at the final *normal* stage
+                    const atFinalStage = pkmn.currentStage === (pkmn.stages.length - 1);
+                    if (atFinalStage) {
+                        show = true;
+                    }
+                }
+            }
+
+            megaBtnContainer.style.display = show ? 'block' : 'none';
+            megaBtn.disabled = !show;
+        }
+
+        function triggerMegaEvolution() {
+            if (!activePokemon || megaStoneCount <= 0) return;
+
+            const pkmn = allPokemon[activePokemon];
+            // Double check eligibility
+            if (pkmn && pkmn.megaInfo && !pkmn.megaInfo.isMega) {
+                const atFinalStage = pkmn.currentStage === (pkmn.stages.length - 1);
+                if (atFinalStage) {
+                    // Consume stone
+                    megaStoneCount--;
+                    // Evolve
+                    pkmn.megaInfo.isMega = true;
+                    
+                    alert(`Chúc mừng! ${pkmn.name} đã tiến hóa Mega!`);
+
+                    // Update UI
+                    updateDisplay();
+                    updateClickerImage();
+                    renderCollection();
+                    showMegaButtonCheck(); // This will hide the button
+                }
+            }
+        }
+        
+        // === END MEGA FUNCTIONS ===
+
+
+        // Click handler (MODIFIED for Mega Stone drop)
+        document.getElementById('pokeball-container').addEventListener('click', function() {
+            totalManualClicks++; // Increment total manual clicks
             pokeballs += clickPower;
             totalEarned += clickPower;
+
+            // NEW: Mega Stone Drop Check
+            if (Math.random() < MEGA_STONE_DROP_RATE) {
+                megaStoneCount++;
+                alert('🎉 Bạn nhặt được 1 Đá Mega!');
+                updateDisplay(); // Update stone count immediately
+                showMegaButtonCheck(); // Update button state in case this was the last stone needed
+            }
+
+            if (activePokemon) {
+                const pkmn = allPokemon[activePokemon];
+                // Only add clicks if it's an evolving type AND not at its final stage
+                const isEvolvingType = (pkmn.type === 'starter' || pkmn.type === 'normal' || pkmn.type === 'rate' || pkmn.type === 'mythic');
+                const isNotMaxStage = pkmn.currentStage < (pkmn.stages.length - 1);
+                if (isEvolvingType && isNotMaxStage) {
+                    pkmn.clicks += 1;
+                    checkManualEvolution(pkmn);
+                }
+            }
+
             updateDisplay();
             renderUpgrades();
         });
+
+        // Gacha button handler
+        document.getElementById('gacha-button').addEventListener('click', pullGacha);
+        
+        // NEW: Mega Evolve button handler
+        document.getElementById('mega-evolve-button').addEventListener('click', triggerMegaEvolution);
 
         // Auto clicker
         setInterval(() => {
@@ -429,8 +975,12 @@
         }, 1000);
 
         // Initial render
+        document.getElementById('gacha-container').style.display = 'block'; 
         updateDisplay();
         renderUpgrades();
+        renderCollection();
+        updateClickerImage();
+        showMegaButtonCheck(); // NEW: Hide mega button on load
     </script>
 </body>
 </html>
